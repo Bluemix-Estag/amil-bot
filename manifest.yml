@@ -1,0 +1,8 @@
+---
+applications:
+- name: amil-bot
+  host: amil-bot
+  memory: 256M
+  services:
+  - amil-bot-conversation
+  - amil-bot-db
