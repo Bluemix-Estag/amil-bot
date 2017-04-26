@@ -177,114 +177,12 @@ var chatbot = {
                         console.log("Error in sending message: ", err);
                         return callback(err);
                     }
-                    var conv = data.context.conversation_id;
-                    if (data['context']['carro'] && data['context']['modelo'] && data['context']['flag']) {
-                        var options = {
-                            url: "https://newcar-api.mybluemix.net/veiculo?model=" + data['context']['modelo']
-                            , headers: {
-                                Accept: 'text/json'
-                            }
-                        };
-
-                        function callback2(error, response, body) {
-                            console.log('error: '+error+' status: '+response.statusCode);
-                            if (!error && response.statusCode == 200) {
-                                var info = JSON.parse(body);
-                                if (info != undefined && info != " ") {
-                                    console.log("Got response from Ana: ", JSON.stringify(data));
-                                    var len = (info.length >= 3) ? 3 : info.length;
-                                    console.log('length ' + len);
-                                    var result = [];
-                                    for (var i = 0; i < len; i++) {
-                                        result[i] = info[i];
-                                    }
-                                    console.log('result: ' + result);
-                                    data['cars'] = result;
-                                    delete data['context']['carro'];
-                                    delete data['context']['modelo'];
-                                    if(data['cars'].length ==0) data['context']['cnf'] = true;
-                                    if (data.context.system.dialog_turn_counter > 1) {
-                                        chatLogs(owner, conv, data, () => {
-                                            return callback(null, data);
-                                        });
-                                    }
-                                    else {
-                                        return callback(null, data);
-                                    }
-                                }
-                            }
-                            else {
-                                console.log('error: '+error);
-                                data['context']['cnf'] = true;
-                                delete data['context']['carro'];
-                                delete data['context']['modelo'];
-                                if (data.context.system.dialog_turn_counter > 1) {
-                                    chatLogs(owner, conv, data, () => {
-                                        return callback(null, data);
-                                    });
-                                }
-                                else {
-                                    return callback(null, data);
-                                }
-                            }
-                        }
-                        request(options, callback2);
-                    }
-                    else if (data['context']['period'] && data['context']['entry'] && data['context']['trigger']) {
-                        var entry = data['context']['entry'];
-                        if(entry.toString().indexOf('%') != -1){
-                            entry = parseFloat(entry.slice(0,entry.toString().indexOf('%')))*data['context']['preco'] / 100;
-                        }
-                        var options2 = {
-                            url: "https://voto-sample.mybluemix.net/sample?period=" + data['context']['period'] + "&entry=" + entry + "&total=" + data['context']['preco'], // temos que setar o carro escolhido e depois escolher ele no vetor info[i][3] que retorna o preco para a api de financiamento
-                            headers: {
-                                Accept: 'text/json'
-                            }
-                        };
-
-                        function callback3(error, response, body) {
-                            if (!error && response.statusCode == 200) {
-                                var result = JSON.parse(body);
-                                data['context']['result'] = result['result'];
-                                if (data.context.system.dialog_turn_counter > 1) {
-                                    chatLogs(owner, conv, data, () => {
-                                        return callback(null, data);
-                                    });
-                                }
-                                else {
-                                    return callback(null, data);
-                                }
-                            }
-                            else {
-                                console.log(error);
-                            }
-                        }
-                        request(options2, callback3);
-                    }
-                    else if (data['context']['pessoal'] && data['context']['calcular']) {
-                        var options4 = {
-                            url: "https://voto-sample.mybluemix.net/pessoal?periodo=" + data['context']['periodo'] + "&valor=" + data['context']['valor']
-                            , headers: {
-                                Accept: 'text/json'
-                            }
-                        };
-
-                        function callback4(error, response, body) {
-                            if (!error && response.statusCode == 200) {
-                                var result = JSON.parse(body);
-                                data['context']['result'] = result['result'];
-                                if (data.context.system.dialog_turn_counter > 1) {
-                                    chatLogs(owner, conv, data, () => {
-                                        return callback(null, data);
-                                    });
-                                }
-                                else {
-                                    return callback(null, data);
-                                }
-                            }
-                        }
-                        request(options4, callback4);
-                    }
+//                    else if(context.cardio){
+//                        //TODO code Here
+//                        
+//                    }else if(context.oft){
+//                        //TODO code here
+//                  }      
                     else {
                         console.log("Got response from Ana: ", JSON.stringify(data));
                         if (data.context.system.dialog_turn_counter > 1) {
