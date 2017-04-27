@@ -113,14 +113,20 @@ function userMessage(message) {
                 loadingMessageStop();
                 delete response['context']['map'];
             }
+            
+            if(response['context']['map'] && response['context']['oft']){
+                map = true;
+                loadingMessageStop();
+                delete response['context']['map'];
+            }
             for (var txt in text) {
                 displayMessage(text[txt], watson);
                 if (map && response['context']['cardio']) {
                     delete response['context']['cardio'];
                     displayMaps("cardio", watson);
-                } else if (map && response['context']['opt']) {
-                    delete response['context']['cardio'];
-                    displayMaps("opt", watson);
+                } else if (map && response['context']['oft']) {
+                    delete response['context']['oft'];
+                    displayMaps("oft", watson);
                 }
             }
         } else {
@@ -216,8 +222,8 @@ function displayMaps(type, watson) {
     //    bubble.innerHTML += '<iframe src="https://www.google.com/maps/embed/v1/search?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center='+lat+','+long+'&q=hospital+in+Santana%20de%20Parnaiba&zoom=14 width="290px" height="170px" frameborder="0" style="border:0;position: relative;left: 12px;"></iframe>';
     if (type == "cardio") {
         bubble.innerHTML += '<iframe width = "290px" height = "170px" frameborder = "0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center='+lat+','+long+'&q=cardiologista&zoom=12" allowfullscreen></iframe>';
-    } else if (type == "opt") {
-        bubble.innerHTML += '<iframe width = "290px" height = "170px" frameborder = "0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center=' + lat + ',' + long + '&q=medico%20optometrista&zoom=12" allowfullscreen></iframe>';
+    } else if (type == "oft") {
+        bubble.innerHTML += '<iframe width = "290px" height = "170px" frameborder = "0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center=' + lat + ',' + long + '&q=medico%20oftalmologista&zoom=12" allowfullscreen></iframe>';
     }
     chat_body.appendChild(bubble);
     chat_body.scrollTop = chat_body.scrollHeight; // Move chat down to the last message displayed
