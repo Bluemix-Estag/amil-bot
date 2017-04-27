@@ -5,6 +5,9 @@ var watson = 'Bot';
 var user = '';
 var text = '';
 var context;
+var lat;
+var long;
+getLocation();
 /**
  * @summary Enter Keyboard Event.
  *
@@ -23,15 +26,14 @@ function newEvent(e) {
         // Some claim steps are handled in newEvent and others are handled in userMessage
         if (text) {
             // Display the user's text in the chat box and null out input box
-            
+
             userMessage(text);
             displayMessage(text, user);
             loadingMessage();
             userInput.value = '';
-            
-            
-        }
-        else {
+
+
+        } else {
             // Blank user message. Do nothing.
             console.error("No message.");
             userInput.value = '';
@@ -50,6 +52,7 @@ function newEvent(e) {
  * @param {String} message - Input message from user or page load.
  */
 function userMessage(message) {
+    var map = false;
     loadingMessage();
     // Set parameters for payload to Watson Conversation
     params.text = message; // User defined text to be sent to service
@@ -58,11 +61,11 @@ function userMessage(message) {
         params.context = context;
         console.log('Params: ' + JSON.stringify(params));
     }
-    
-    
-    
-    console.log('nome: '+user);
-    
+
+
+
+    console.log('nome: ' + user);
+
     var xhr = new XMLHttpRequest();
     var uri = '/api/ana';
     xhr.open('POST', uri, true);
@@ -79,16 +82,16 @@ function userMessage(message) {
                 displayCarsMessage(response['cars'], watson);
                 userMessage('ok');
             }
-            
-            if(response['context']['cnf']){
+
+            if (response['context']['cnf']) {
                 delete response['context']['cnf'];
                 delete response['context']['flag'];
                 delete response['context']['carro'];
                 delete response['context']['modelo'];
-//                delete response['context']['modelo'];
+                //                delete response['context']['modelo'];
                 userMessage('cnf');
             }
-            
+
             if (response['context']['result'] && response['context']['trigger']) {
                 delete response['context']['trigger'];
                 if (context) {
@@ -96,7 +99,7 @@ function userMessage(message) {
                 }
                 userMessage('ok');
             }
-            if(response['context']['pessoal'] && response['context']['result'] && response['context']['calcular']){
+            if (response['context']['pessoal'] && response['context']['result'] && response['context']['calcular']) {
                 console.log(JSON.stringify(context));
                 delete response['context']['modelo'];
                 delete response['context']['calcular'];
@@ -105,11 +108,22 @@ function userMessage(message) {
                 }
                 userMessage('ok');
             }
+            if (response['context']['map'] && response['context']['cardio']) {
+                map = true;
+                loadingMessageStop();
+                delete response['context']['map'];
+            }
             for (var txt in text) {
                 displayMessage(text[txt], watson);
+                if (map && response['context']['cardio']) {
+                    delete response['context']['cardio'];
+                    displayMaps("cardio", watson);
+                } else if (map && response['context']['opt']) {
+                    delete response['context']['cardio'];
+                    displayMaps("opt", watson);
+                }
             }
-        }
-        else {
+        } else {
             console.error('Server error for Conversation. Return status of: ', xhr.statusText);
             displayMessage("Putz, deu um tilt aqui. Você pode tentar novamente.", watson);
         }
@@ -144,19 +158,18 @@ function getTimestamp() {
  * @return null
  */
 function displayMessage(text, user) {
-    
+
     loadingMessageStop();
-    
+
     var chat = document.getElementById('chatBox');
     var bubble = document.createElement('div');
-     
+
     bubble.className = 'message'; // Wrap the text first in a message class for common formatting
     // Set chat bubble color and position based on the user parameter
     if (user === watson) {
         var name = "Bot";
         bubble.innerHTML = "<div class='anaTitle'>" + name + " | " + getTimestamp() + "</div><div class='ana'>" + text + "</div>";
-    }
-    else {
+    } else {
         var name = "John";
         if (context && context.fname && context.fname.length > 0) {
             name = context.fname;
@@ -194,14 +207,44 @@ function chooseCar(name, price) {
     userMessage('ok');
 }
 
-
-function loadingMessage(){
-    
-    document.getElementById('typing_div').innerHTML = '<img src ="images/watson.gif"/>';
-    document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight; 
-    
-//    document.getElementById('typing_div').innerHTML = '<img src ="images/watson.gif"/>';
+//Mapa
+//
+function displayMaps(type, watson) {
+    var chat_body = document.getElementById('chatBox');
+    var bubble = document.createElement('div');
+    // Se precisar de um forçado
+    //    bubble.innerHTML += '<iframe src="https://www.google.com/maps/embed/v1/search?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center='+lat+','+long+'&q=hospital+in+Santana%20de%20Parnaiba&zoom=14 width="290px" height="170px" frameborder="0" style="border:0;position: relative;left: 12px;"></iframe>';
+    if (type == "cardio") {
+        bubble.innerHTML += '<iframe width = "290px" height = "170px" frameborder = "0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center='+lat+','+long+'&q=cardiologista&zoom=12" allowfullscreen></iframe>';
+    } else if (type == "opt") {
+        bubble.innerHTML += '<iframe width = "290px" height = "170px" frameborder = "0" style="border:0" src="https://www.google.com/maps/embed/v1/place?key=AIzaSyCzFkRQ3y5QUWILwMttySU7MFGS-mWakOw&center=' + lat + ',' + long + '&q=medico%20optometrista&zoom=12" allowfullscreen></iframe>';
+    }
+    chat_body.appendChild(bubble);
+    chat_body.scrollTop = chat_body.scrollHeight; // Move chat down to the last message displayed
+    document.getElementById('chatInput').focus();
 }
-function loadingMessageStop(){
+
+
+function getLocation() {
+    navigator.geolocation.getCurrentPosition(showPosition);
+    lat = navigator.latitude;
+    long = navigator.longitude;
+}
+
+function showPosition(position) {
+    lat = position.coords.latitude;
+    long = position.coords.longitude;
+}
+
+
+function loadingMessage() {
+
+    document.getElementById('typing_div').innerHTML = '<img src ="images/watson.gif"/>';
+    document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+
+    //    document.getElementById('typing_div').innerHTML = '<img src ="images/watson.gif"/>';
+}
+
+function loadingMessageStop() {
     document.getElementById('typing_div').innerHTML = '';
 }
